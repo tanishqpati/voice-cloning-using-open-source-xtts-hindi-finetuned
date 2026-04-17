@@ -16,8 +16,21 @@ This repository contains a config-driven TTS provider platform with:
 yarn install
 ```
 
-2. Run all services:
+2. Run API + web:
 
 ```bash
 yarn dev
 ```
+
+3. Run Python TTS service in a separate terminal:
+
+```bash
+yarn dev:tts
+```
+
+## Environment
+
+- `apps/web` uses `API_BASE_URL` (defaults to `http://localhost:4000`)
+- `apps/api` uses `PORT` (defaults to `4000`)
+- `services/tts-service` uses:
+  - `MODEL_ID` (defaults to `Abhinay45/XTTS-Hindi-finetuned`)
