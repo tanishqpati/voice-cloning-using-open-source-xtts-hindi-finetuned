@@ -1,0 +1,17 @@
+{
+  "name": "tts-provider-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspace @tts/api dev & yarn workspace @tts/web dev",
+    "dev:web": "yarn workspace @tts/web dev",
+    "dev:api": "yarn workspace @tts/api dev",
+    "build": "yarn workspace @tts/config build && yarn workspace @tts/sdk build && yarn workspace @tts/api build && yarn workspace @tts/web build",
+    "test": "yarn workspace @tts/api test && yarn workspace @tts/config test",
+    "typecheck": "yarn workspace @tts/api typecheck && yarn workspace @tts/web typecheck && yarn workspace @tts/config typecheck && yarn workspace @tts/sdk typecheck"
+  }
+}
