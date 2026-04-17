@@ -1,0 +1,7 @@
+TTS
+torch
+torchaudio
+fastapi
+uvicorn
+python-multipart
+huggingface_hub
