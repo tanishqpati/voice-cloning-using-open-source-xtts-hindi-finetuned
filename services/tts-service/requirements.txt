@@ -1,7 +1,8 @@
 TTS
-torch
-torchaudio
+torch==2.5.1
+torchaudio==2.5.1
 fastapi
 uvicorn
 python-multipart
 huggingface_hub
+transformers==4.42.4

@@ -1,4 +1,3 @@
-import FormData from "form-data";
 import type { ModelConfig, TTSProviderInput, TTSProviderResult } from "@tts/config";
 import type { TTSProvider } from "./types";
 
@@ -13,15 +12,15 @@ export class PythonTTSProvider implements TTSProvider {
     const form = new FormData();
     form.append("text", input.text);
     form.append("language", input.language);
-    form.append("file", input.file, {
-      filename: input.filename,
-      contentType: input.contentType
-    });
+    form.append(
+      "file",
+      new Blob([input.file], { type: input.contentType }),
+      input.filename
+    );
 
     const response = await fetch(this.config.endpoint, {
       method: "POST",
-      body: form as unknown as BodyInit,
-      headers: form.getHeaders()
+      body: form
     });
 
     if (!response.ok) {

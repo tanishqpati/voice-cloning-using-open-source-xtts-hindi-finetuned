@@ -8,7 +8,11 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.staticfiles import StaticFiles
 from TTS.api import TTS
 
-MODEL_ID = os.getenv("MODEL_ID", "Abhinay45/XTTS-Hindi-finetuned")
+# Coqui-registered model name for XTTS v2 (multilingual, supports Hindi)
+COQUI_MODEL = "tts_models/multilingual/multi-dataset/xtts_v2"
+# Optional HuggingFace fine-tuned checkpoint to overlay (set to empty string to skip)
+HF_FINETUNED = os.getenv("HF_FINETUNED", "")
+MODEL_ID = os.getenv("MODEL_ID") or HF_FINETUNED or COQUI_MODEL
 OUTPUT_DIR = Path("/tmp/tts-service/outputs")
 UPLOAD_DIR = Path("/tmp/tts-service/uploads")
 
@@ -24,7 +28,13 @@ tts = None
 @app.on_event("startup")
 def startup_event():
     global tts
-    tts = TTS(model_name=MODEL_ID)
+    if HF_FINETUNED:
+        from huggingface_hub import snapshot_download
+        model_dir = snapshot_download(HF_FINETUNED)
+        config_path = os.path.join(model_dir, "config.json")
+        tts = TTS(model_path=model_dir, config_path=config_path)
+    else:
+        tts = TTS(model_name=COQUI_MODEL)
 
 
 def synthesize(text: str, speaker_wav: str, language: str = "hi") -> Path:
@@ -41,6 +51,34 @@ def synthesize(text: str, speaker_wav: str, language: str = "hi") -> Path:
 @app.get("/health")
 def health():
     return {"status": "ok", "model_id": MODEL_ID}
+
+
+@app.get("/models")
+def list_models():
+    return {
+        "models": [
+            {
+                "id": MODEL_ID,
+                "provider": "coqui",
+                "type": "tts",
+                "endpoint": os.getenv("TTS_SERVICE_URL", "http://127.0.0.1:8000"),
+                "language": "hi",
+                "huggingface_id": HF_FINETUNED or None,
+            }
+        ]
+    }
+
+
+@app.post("/generate")
+async def generate_api(
+    text: str = Form(...),
+    model: str = Form(MODEL_ID),
+    language: str = Form("hi"),
+    file: UploadFile = File(...),
+):
+    if model and model != MODEL_ID:
+        raise HTTPException(status_code=400, detail=f"Unknown model '{model}'.")
+    return await synthesize_api(text=text, language=language, file=file)
 
 
 @app.post("/synthesize")
